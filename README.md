@@ -4,6 +4,7 @@
 
 To use this code on Orpheus, use:
 ```bash
-#!/bin/bash
+# in your terminal
 git clone https://github.com/GenshinAddict416/Outreach.git
 ```
+This will create a new project folder called *Outreach* wherever you ran the command.
