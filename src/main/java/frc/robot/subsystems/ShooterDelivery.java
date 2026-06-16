@@ -16,13 +16,15 @@ import frc.robot.Constants;
 
 public class ShooterDelivery extends SubsystemBase {
     private SparkFlexConfig shooterDeliveryConfig;
-      private SparkFlex shooterDelivery;
+    private SparkFlexConfig shooterDelivery2Config;
+    private SparkFlex shooterDelivery;
+    private SparkFlex shooterDelivery2;
 
   /** Creates a new ShooterDelivery. */
   public ShooterDelivery() {
 
         shooterDelivery = new SparkFlex(
-      Constants.ShooterConstants.kShooterDeliveryCanId, 
+      Constants.ShooterConstants.kShooterDelivery1CanId, 
       MotorType.kBrushless);
 
           shooterDeliveryConfig = Configs.ShooterConfigs.ShooterDeliveryConfig;
@@ -31,10 +33,24 @@ public class ShooterDelivery extends SubsystemBase {
       shooterDeliveryConfig,
       ResetMode.kNoResetSafeParameters,
       PersistMode.kPersistParameters);
+
+
+      shooterDelivery2 = new SparkFlex(
+      Constants.ShooterConstants.kShooterDelivery2CanId, 
+      MotorType.kBrushless);
+
+          shooterDelivery2Config = Configs.ShooterConfigs.ShooterDelivery2Config;
+
+              shooterDelivery2.configure(
+      shooterDelivery2Config,
+      ResetMode.kNoResetSafeParameters,
+      PersistMode.kPersistParameters);
+      shooterDelivery2Config.inverted(true);
   }
 
     public void setDeliveryVoltage(double voltage) {
     shooterDelivery.setVoltage(voltage);
+    shooterDelivery2.setVoltage(voltage);
   }
 
   @Override

@@ -1,0 +1,121 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 6.412809523809524,
+        "y": 3.4627261904761912
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 6.682750000000001,
+        "y": 2.4045595238095245
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.153666666666668,
+        "y": 0.8065119047619043
+      },
+      "prevControl": {
+        "x": 6.499190476190477,
+        "y": 1.2492142857142858
+      },
+      "nextControl": {
+        "x": 5.949009267453539,
+        "y": 0.5442946120200816
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.0871428571428576,
+        "y": 0.6445476190476187
+      },
+      "prevControl": {
+        "x": 3.2543840400484703,
+        "y": 0.4587240824858273
+      },
+      "nextControl": {
+        "x": 2.7453609285713627,
+        "y": 1.0243053174603893
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 3.0871428571428576,
+        "y": 1.3863532763532782
+      },
+      "prevControl": {
+        "x": 2.3421071428571434,
+        "y": 1.213591371591375
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1.4414937759336017,
+      "rotationDegrees": 0.0
+    },
+    {
+      "waypointRelativePos": 1.9317697228144848,
+      "rotationDegrees": 0.0
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 1.0034739454094208,
+      "maxWaypointRelativePos": 2.260049627791563,
+      "constraints": {
+        "maxVelocity": 2.0,
+        "maxAcceleration": 3.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "StoppyMcStopFace",
+      "waypointRelativePos": 1.6526054590570742,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "StoppyMcStopFace"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 62.847075986056296
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 90.61605990839917
+  },
+  "useDefaultConstraints": true
+}

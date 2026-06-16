@@ -4,11 +4,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.FeedbackSensor;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkFlexConfig;
 
 import frc.robot.Constants.ModuleConstants;
 
@@ -69,12 +67,14 @@ public final class Configs {
         public static final SparkFlexConfig ShooterFlyWheelLeftConfig = new SparkFlexConfig();
         public static final SparkFlexConfig ShooterFlyWheelMiddleConfig = new SparkFlexConfig();
         public static final SparkFlexConfig ShooterFlyWheelRightConfig = new SparkFlexConfig();
+        public static final SparkFlexConfig ShooterFlyWheelOtherConfig = new SparkFlexConfig();
         public static final SparkFlexConfig ShooterDeliveryConfig = new SparkFlexConfig();
+        public static final SparkFlexConfig ShooterDelivery2Config = new SparkFlexConfig();
 
         static {
             ShooterFlyWheelLeftConfig
                 .idleMode(IdleMode.kCoast)
-                .inverted(false)
+                .inverted(true)
                 .smartCurrentLimit(40);
 
             ShooterFlyWheelMiddleConfig
@@ -84,30 +84,36 @@ public final class Configs {
 
             ShooterFlyWheelRightConfig
                 .idleMode(IdleMode.kCoast)
-                .inverted(true)
+                .inverted(false)
+                .smartCurrentLimit(40);
+
+            ShooterFlyWheelOtherConfig
+                .idleMode(IdleMode.kCoast)
+                .inverted(false)
                 .smartCurrentLimit(40);
 
             ShooterDeliveryConfig
                 .idleMode(IdleMode.kBrake)
-                .inverted(false)
-                .smartCurrentLimit(50); 
+                .inverted(true)
+                .smartCurrentLimit(40); 
             }
     }
 
     public static final class IntakeConfigs {
         public static final SparkFlexConfig intakeConfig = new SparkFlexConfig();
+        public static final SparkFlexConfig intakeConfig2 = new SparkFlexConfig();
         public static final SparkMaxConfig intakeROTConfig = new SparkMaxConfig();
 
         static {
             intakeConfig
                     .idleMode(IdleMode.kBrake)
-                    .smartCurrentLimit(40)
+                    .smartCurrentLimit(80)
                     .inverted(true);
 
             intakeROTConfig
                     .idleMode(IdleMode.kBrake)
                     .smartCurrentLimit(40)
-                    .inverted(false);
+                    .inverted(true);
 
             intakeROTConfig.absoluteEncoder
                     .inverted(true);
@@ -130,7 +136,7 @@ public final class Configs {
             deliveryConfig
                     .idleMode(IdleMode.kBrake)
                     .smartCurrentLimit(40)
-                    .inverted(false);
+                    .inverted(true);
         }
     }
               

@@ -9,13 +9,9 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
 import frc.robot.Constants;
@@ -75,7 +71,5 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     intakePID.setSetpoint(intakePosition, ControlType.kPosition);
-    SmartDashboard.putNumber("Intake Position", intakeEncoder.getPosition());
-    SmartDashboard.putNumber("Intake Target", intakePosition);
   }
 }

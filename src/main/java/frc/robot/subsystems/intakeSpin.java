@@ -17,6 +17,8 @@ public class intakeSpin extends SubsystemBase {
 
         private SparkFlex intake;
         private SparkFlexConfig intakeConfig;
+        private SparkFlex intake2;
+        private SparkFlexConfig intakeConfig2;
   /** Creates a new intakeSpin. */
   public intakeSpin() {
     intake = new SparkFlex(
@@ -30,11 +32,25 @@ public class intakeSpin extends SubsystemBase {
      ResetMode.kNoResetSafeParameters,
      PersistMode.kPersistParameters);
 
+
+     intake2 = new SparkFlex(
+      Constants.IntakeConstants.kIntakeIntake2CanId, 
+      com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+
+          intakeConfig2 = Configs.IntakeConfigs.intakeConfig2;
+              intake2.configure(
+      intakeConfig2,
+     ResetMode.kNoResetSafeParameters,
+     PersistMode.kPersistParameters);
+    intakeConfig2.inverted(true)
+    .smartCurrentLimit(80);
+
   }
 
   
   public void setIntakeVoltage(double voltage) {
     intake.setVoltage(voltage);
+    intake2.setVoltage(voltage);
   }
 
   @Override

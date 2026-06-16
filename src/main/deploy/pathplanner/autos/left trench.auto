@@ -1,0 +1,132 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left trench 1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left trench 2"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.75
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Delivery"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left trench 3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "left trench 4"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Delivery"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeIn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 3.0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

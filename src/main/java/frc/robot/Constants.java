@@ -113,72 +113,76 @@ public final class Constants {
 
   public static final class FieldConstants {
     public static final class Red {
-      public static final Translation2d kHubPosition = new Translation2d(11.92, 4.04);
-      public static final Translation2d kShuttleDepot = new Translation2d(4.115, 4.01);
-      public static final Translation2d kShuttleOutpost = new Translation2d(8.23, 4.01);
+      public static final Translation2d kHubPosition = new Translation2d(11.92, 4.0);
+      public static final Translation2d kShuttleDepot = new Translation2d(14.3, 2.0);
+      public static final Translation2d kShuttleOutpost = new Translation2d(14.3, 6.0);
     }
     public static final class Blue {
-      public static final Translation2d kHubPosition = new Translation2d(4.63, 4.04);
-      public static final Translation2d kShuttleDepot = new Translation2d(4.115, 4.01);
-      public static final Translation2d kShuttleOutpost = new Translation2d(8.23, 4.01);
+      public static final Translation2d kHubPosition = new Translation2d(4.63, 4.0);
+      public static final Translation2d kShuttleDepot = new Translation2d(2.5, 2.0);
+      public static final Translation2d kShuttleOutpost = new Translation2d(2.5, 6.0
+      );
     }
   }
 
   public static final class ShooterConstants {
-    public static final int kShooterFlyWheelLeftCanId = 12;
-    public static final int kShooterFlyWheelMiddleCanId = 13;
-    public static final int kShooterFlyWheelRightCanId = 14;
-    public static final int kShooterDeliveryCanId = 15;
+    public static final int kShooterFlyWheel1CanId = 12;
+    public static final int kShooterFlyWheel2CanId = 13;
+    public static final int kShooterFlyWheel3CanId = 14;
+    public static final int kShooterFlyWheel4CanId = 18;
 
-    public static final int kShooterHoodServoRightChannel = 0;
-    public static final int kShooterHoodServoLeftChannel = 1;
-    public static final double kShooterMaxAngleHoodmm = 81.5;
-    public static final double kShooterMinAngleHoodmm = 20.5;
+    /* Feeder, NOT SHOOTER DELIVERY */
+    public static final int kShooterDelivery1CanId = 15;
+    public static final int kShooterDelivery2CanId = 16;
+
+    
     public static final double kProjectileSpeedMetersPerSecond = 15.0;
-    public static final double kShooterDeliveryVoltage = 12.0;
+    public static final double kShooterDeliveryVoltage = 8.0;
 
-    public static final double kFlyWheelP = 0.005; 
+    public static final double kFlyWheelP = .004; 
     public static final double kFlyWheelI = 0;
     public static final double kFlyWheelD = 0.0;
     public static final double kFlyWheelToleranceRPM = 50.0; 
 
-    public static final InterpolatingDoubleTreeMap kHoodAngleMap = new InterpolatingDoubleTreeMap();
-    static {
-      // Populate the hood angle map with distance (in meters) to hood angle (in degrees) pairs
-      kHoodAngleMap.put(1.5, 10.0);
-      kHoodAngleMap.put(2.0, 13.0);
-      kHoodAngleMap.put(2.5, 16.0);
-      kHoodAngleMap.put(3.0, 19.0);
-      kHoodAngleMap.put(3.5, 25.0);
-      kHoodAngleMap.put(4.0, 27.0);
-    }
-
+    
+    //im porrammging
+    /*  
+     * for(long i = 0; i < 9223372036854775807; i++){
+     * if(i == 9223372036854775806){
+     * System.exit(0);
+     * }     * 
+     * }
+     */
+    //shhhhhhhh
     public static final InterpolatingDoubleTreeMap kFlywheelRPMMap = new InterpolatingDoubleTreeMap();
     static {
       // Populate the flywheel RPM map with distance (in meters) to flywheel RPM pairs
-      kFlywheelRPMMap.put(1.5,2750.0);
-      kFlywheelRPMMap.put(2.0, 3125.0);
-      kFlywheelRPMMap.put(2.5, 3275.0);
-      kFlywheelRPMMap.put(3.0, 3500.0);
-      kFlywheelRPMMap.put(3.5, 3550.0);
-      kFlywheelRPMMap.put(4.0, 3700.0);
+      kFlywheelRPMMap.put(1.2,3200.0);
+      kFlywheelRPMMap.put(1.5,3300.0);
+      kFlywheelRPMMap.put(2.0, 3800.0);
+      kFlywheelRPMMap.put(2.5, 4100.0);
+      kFlywheelRPMMap.put(3.0, 4600.0);
+      kFlywheelRPMMap.put(3.5, 5800.0);
+      kFlywheelRPMMap.put(4.0, 6200.0);
     }
 
     public static final InterpolatingDoubleTreeMap kFlywheelMap = new InterpolatingDoubleTreeMap();
     static {
-      // Populate the flywheel RPM map with distance (in meters) to flywheel RPM pairs  
-      kFlywheelMap.put(-3000.0, -6.0);
+      // Populate the flywheel RPM map with voltage to flywheel RPM pairs  
       kFlywheelMap.put(0.0, 0.0);
-      kFlywheelMap.put(1025.0, 2.0);
-      kFlywheelMap.put(2145.0, 4.0);
-      kFlywheelMap.put(3260.0, 6.0);
-      kFlywheelMap.put(4270.0, 8.0);
-      kFlywheelMap.put(5000.0, 9.0);
+      kFlywheelMap.put(1070.0, 2.0);
+      kFlywheelMap.put(2175.0, 4.0);
+      kFlywheelMap.put(3295.0, 6.0);
+      kFlywheelMap.put(4400.0, 8.0);
+      kFlywheelMap.put(5505.0, 10.0);
+      kFlywheelMap.put(6075.0, 12.0);
     }
   }
 
   public static final class  IntakeConstants {
-    public static final int kIntakeIntakeCanId = 10;
+    /* CHANGE NAMES!!! */
+    public static final int kIntakeIntake2CanId = 17; // Left intake
+    public static final int kIntakeIntakeCanId = 10; // Right intake
     public static final int kIntakeROTCanId = 9;
 
     public static final double kIntakeROTkP = 0.8;
@@ -186,13 +190,13 @@ public final class Constants {
     public static final double kIntakeROTkD = 0.0;
 
     public static final double kIntakeRestingPosition = 0.0;
-    public static final double kIntakeDeployedPosition = 1.0;
+    public static final double kIntakeDeployedPosition = 00;
     public static final double kIntakeClimbingPosition = 0.5;
     public static final double kIntakeTrenchPosition = 0.25;
 
     public static final class IntakePosition {
-      public static final double kGround = 0.16;
-      public static final double kStowed = 0.56;
+      public static final double kGround = 0.822;
+      public static final double kStowed = 0.141;
       public static final double kClimbing = 0.5;
       public static final double kTrench = 0.25;
     }
@@ -200,21 +204,9 @@ public final class Constants {
   }
 
   public static final class DeliveryConstants {
-    public static final int kDeliveryCanId = 11;
+    public static final int kDeliveryCanId = 11; // Hot dog delivery
     public static final double kDeliveryVoltage = -10.0;
   }
 
-  public static final class ClimberConstants {
-    public static final int kClimberLeftCanId = 16;
-    public static final int kClimberRightCanId = 17;
-      // PID gains for climber position control (encoder units -> position)
-      // Tweak these on the real robot. Defaults are conservative placeholders.
-      public static final double kClimberP = 1.0;
-      public static final double kClimberI = 0.0;
-      public static final double kClimberD = 0.0;
-      // Position tolerance (same units as encoder position). Adjust as needed.
-      public static final double kClimberPositionTolerance = 0.01;
-      // Maximum voltage to apply when using position control
-      public static final double kClimberMaxVoltage = 12.0;
-  }
+  
 }

@@ -11,9 +11,14 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants;
 
+
+
 /** Add your docs here. */
 public class FieldPoints {
-    public FieldPoints(){}
+    DriveSubsystem Drive;
+    public FieldPoints(){
+        Drive = new DriveSubsystem();
+    }
     
     public static Translation2d getHubPosition() {
         Optional<Alliance> allianceColor = DriverStation.getAlliance();

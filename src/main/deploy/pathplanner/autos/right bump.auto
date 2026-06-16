@@ -1,0 +1,170 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right bump 1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right bump 2"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 1.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Delivery"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "StoppyMcStopFace"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right bump 3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "right bump 4"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.25
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Delivery"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeIn"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "IntakeOut"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 3.0
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

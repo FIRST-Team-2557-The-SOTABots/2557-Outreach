@@ -10,7 +10,6 @@ import edu.wpi.first.hal.HAL;
 
 
 import org.littletonrobotics.junction.Logger;
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -21,8 +20,6 @@ import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -30,18 +27,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.ADIS16470_IMU;
-import edu.wpi.first.wpilibj.ADIS16470_IMU.IMUAxis;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -78,6 +65,8 @@ public class DriveSubsystem extends SubsystemBase {
 
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
+
+  private final double trim = 0;
 
   private final PIDController m_turningController = new PIDController(
     DriveConstants.kTurningP, DriveConstants.kTurningI, DriveConstants.kTurningD);
@@ -128,10 +117,10 @@ public class DriveSubsystem extends SubsystemBase {
               // This will flip the path being followed to the red side of the field.
               // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
-              // var alliance = DriverStation.getAlliance();
-              // if (alliance.isPresent()) {
-              //   return alliance.get() == DriverStation.Alliance.Red;
-              // }
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
               return false;
             },
             this // Reference to this subsystem to set requirements
@@ -242,10 +231,7 @@ public class DriveSubsystem extends SubsystemBase {
     return getPose().getTranslation().getDistance(hubPosition);
   }
 
-  public double getDesiredHoodAngle(Translation2d hubPosition) {
-    double distance = getDistanceTo(hubPosition);
-    return Constants.ShooterConstants.kHoodAngleMap.get(distance);
-  }
+  
 
   public double getDesiredFlywheelRPM(Translation2d hubPosition) {
     double distance = getDistanceTo(hubPosition);
@@ -279,7 +265,7 @@ public class DriveSubsystem extends SubsystemBase {
     double omega =
         m_turningController.calculate(
             pose.getRotation().getRadians(),
-            targetHeading.getRadians()
+            targetHeading.getRadians() + (trim*0.0174533)
         );
 
     // Clamp angular velocity
@@ -292,6 +278,51 @@ public class DriveSubsystem extends SubsystemBase {
     // Rotate in place, field-relative
     drive(-controller.getLeftY(), -controller.getLeftX(), omega, true);
 }
+
+
+public void turnToFieldPointAuto(Translation2d target) {
+    Pose2d pose = getPose();
+
+    // Vector from robot to target
+    Translation2d diff =
+        target.minus(pose.getTranslation());
+
+    // Prevent undefined angle when on top of target
+    if (diff.getNorm() < 0.05) {
+        drive(0.0, 0.0, 0.0, true);
+        return;
+    }
+
+    // Desired robot heading
+    Rotation2d targetHeading = diff.getAngle();
+
+    // PID calculates shortest angular path
+    double omega =
+        m_turningController.calculate(
+            pose.getRotation().getRadians(),
+            targetHeading.getRadians()
+        );
+
+    // Clamp angular velocity
+    omega = MathUtil.clamp(
+        omega,
+        -DriveConstants.kMaxAngularSpeed,
+        DriveConstants.kMaxAngularSpeed
+    );
+
+    // Rotate in place, field-relative
+    drive(0, 0, omega, true);
+}
+
+  public Translation2d getShuttlePosition(){
+    if(m_poseEstimator.getEstimatedPosition().getY() > 4){
+      System.out.println("out");
+      return FieldPoints.getShuttleOutpost();
+    } else {
+      System.out.println("depot");
+      return FieldPoints.getDepotShuttle();
+    }
+  }
 
   public boolean isAtTurnTarget(){
     return m_turningController.atSetpoint();
