@@ -185,7 +185,7 @@ public final class Constants {
     public static final int kIntakeIntakeCanId = 10; // Right intake
     public static final int kIntakeROTCanId = 9;
 
-    public static final double kIntakeROTkP = 0.8;
+    public static final double kIntakeROTkP = 2;
     public static final double kIntakeROTkI = 0.0;
     public static final double kIntakeROTkD = 0.0;
 
@@ -195,8 +195,8 @@ public final class Constants {
     public static final double kIntakeTrenchPosition = 0.25;
 
     public static final class IntakePosition {
-      public static final double kGround = 0.822;
-      public static final double kStowed = 0.141;
+      public static final double kGround = 0.57;
+      public static final double kStowed = 0.01;
       public static final double kClimbing = 0.5;
       public static final double kTrench = 0.25;
     }

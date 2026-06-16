@@ -22,6 +22,7 @@ import frc.robot.subsystems.ShooterDelivery;
 import frc.robot.subsystems.intakeSpin;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -281,13 +282,13 @@ public class RobotContainer {
 
 
 
-// //  m_driverController.a().whileTrue(
-// //   new ConditionalCommand(
-// //     new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
-// //     new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
-// //     m_intake::isStowed  // returns true if stowed → deploy, false if deployed → stow
-// //   )
-// // );
+ m_driverController.a().whileTrue(
+  new ConditionalCommand(
+    new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
+    new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
+    m_intake::isStowed  // returns true if stowed → deploy, false if deployed → stow
+  )
+);
 
     //intake
     m_driverController.leftTrigger().onTrue(new RunCommand(
