@@ -316,10 +316,11 @@ public class RobotContainer {
     //   () -> m_climber.setVoltage(4), m_climber)).onFalse(new RunCommand(
     //     () -> m_climber.setVoltage(0), m_climber));
 
-    // //put climber down
-    // m_driverController.y().onTrue(new RunCommand(
-    //   () -> m_climber.setVoltage(-4), m_climber)).onFalse(new RunCommand(
-    //     () -> m_climber.setVoltage(0), m_climber));
+    //zero intake
+    m_driverController.y().onTrue(new InstantCommand(
+      () -> m_intake.setUp(), m_intake
+      )
+    );
     
     // spinny mc spinface
     m_driverController.rightTrigger()
