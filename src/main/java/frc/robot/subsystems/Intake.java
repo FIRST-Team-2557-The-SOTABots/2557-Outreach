@@ -12,6 +12,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
 import frc.robot.Constants;
@@ -81,6 +82,20 @@ public class Intake extends SubsystemBase {
 
   @Override
   public void periodic() {
+      // If gravity is always pulling it down, it always needs a baseline force
+      // to fight it, even when sitting completely still at the target.
+      double arbFF = -0.05; // Adjust this value until the intake can almost hover on its own
+
+      intakePID.setSetpoint(
+          intakePosition, 
+          ControlType.kPosition, 
+          com.revrobotics.spark.ClosedLoopSlot.kSlot0, 
+          arbFF
+      );
+      
+      SmartDashboard.putNumber("Target Intake Pos", intakePosition);
+      SmartDashboard.putNumber("Current Intake Position", intakeEncoder.getPosition());
+      SmartDashboard.putNumber("APPLIED OUTPUT", intakeROT.getAppliedOutput());
     // Fixed: SparkClosedLoopController uses setReference, not setSetpoint
     intakePID.setReference(intakePosition, ControlType.kPosition);
   }
