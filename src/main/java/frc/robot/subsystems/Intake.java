@@ -4,10 +4,10 @@
 
 package frc.robot.subsystems;
 
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode; 
+import com.revrobotics.spark.SparkBase.ResetMode;   
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -20,34 +20,23 @@ public class Intake extends SubsystemBase {
   /** Creates a new Intake. */
 
   private SparkMax intakeROT;
-
   private SparkAbsoluteEncoder intakeEncoder;
-
   private SparkClosedLoopController intakePID;
 
-
-  private SparkMaxConfig intakeRotConfig;
-
+  // Use a local copy of the config so modifications do not affect other subsystems
+  private SparkMaxConfig intakeRotConfig = new SparkMaxConfig();
   private double intakePosition = Constants.IntakeConstants.IntakePosition.kStowed;
 
   public Intake() {
-    
-
     intakeROT = new SparkMax(
       Constants.IntakeConstants.kIntakeROTCanId, 
       com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
     
-
     intakePID = intakeROT.getClosedLoopController();
-
     intakeEncoder = intakeROT.getAbsoluteEncoder();
 
-
-
-    intakeRotConfig = Configs.IntakeConfigs.intakeROTConfig;
-
-
-
+    // Copy the base configuration from your global Configs class
+    intakeRotConfig.apply(Configs.IntakeConfigs.intakeROTConfig);
 
     intakeROT.configure(
       intakeRotConfig,
@@ -55,21 +44,44 @@ public class Intake extends SubsystemBase {
       PersistMode.kPersistParameters);
   }
 
-
   public double getIntakePosition() {
-    return intakeEncoder.getPosition();
+    // Fixed: REVLib's getPosition() already returns a primitive double.
+    return intakeEncoder.getPosition(); 
   }
 
   public void setIntakePosition(double position) {
     this.intakePosition = position;
   }
 
+  /**
+   * Recalibrates the absolute encoder zero-offset so the current physical 
+   * resting position immediately streams as 0.01.
+   */
+  public void setUp(){
+    // Fixed: Removed .getValue()
+    double currentPhysicalPos = intakeEncoder.getPosition();
+
+    // Compute the offset needed to force this spot to equal 0.01
+    // Formula: Offset = Current Position - Target Position
+    double newOffset = currentPhysicalPos - 0.01;
+
+    // Update the configuration parameter
+    intakeRotConfig.absoluteEncoder.zeroOffset(newOffset);
+
+    // Send the updated configuration back to the SPARK MAX hardware
+    intakeROT.configure(
+      intakeRotConfig,
+      ResetMode.kNoResetSafeParameters,
+      PersistMode.kNoPersistParameters); // Use kNoPersist Parameters to avoid burning out flash memory
+  }
+
   public boolean isStowed() {
-  return intakePosition == Constants.IntakeConstants.IntakePosition.kStowed;
-}
+    return intakePosition == Constants.IntakeConstants.IntakePosition.kStowed;
+  }
 
   @Override
   public void periodic() {
-    intakePID.setSetpoint(intakePosition, ControlType.kPosition);
+    // Fixed: SparkClosedLoopController uses setReference, not setSetpoint
+    intakePID.setReference(intakePosition, ControlType.kPosition);
   }
 }
