@@ -50,7 +50,7 @@ public class RobotContainer {
 
   // The driver's controller
   CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
-
+  CommandXboxController m_manipulatorController = new CommandXboxController(OIConstants.kManipulatorControllerPort);
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -228,7 +228,7 @@ public class RobotContainer {
 //                 true),
 //             m_robotDrive)));
 
-    m_driverController.rightBumper()
+    m_manipulatorController.rightBumper()
       .onTrue(
         new RunCommand(
           () -> m_delivery.setDeliveryVoltage(Constants.DeliveryConstants.kDeliveryVoltage), 
@@ -282,7 +282,7 @@ public class RobotContainer {
 
 
 
- m_driverController.a().whileTrue(
+ m_manipulatorController.a().whileTrue(
   new ConditionalCommand(
     new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
     new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
@@ -291,13 +291,13 @@ public class RobotContainer {
 );
 
     //intake
-    m_driverController.leftTrigger().onTrue(new RunCommand(
+    m_manipulatorController.leftTrigger().onTrue(new RunCommand(
       () -> m_intakeSpin.setIntakeVoltage(12), m_intakeSpin))
     .onFalse(new RunCommand(
         () -> m_intakeSpin.setIntakeVoltage(0), m_intakeSpin));
     
     //clear blockage
-    m_driverController.b().onTrue(new RunCommand(
+    m_manipulatorController.b().onTrue(new RunCommand(
       () -> m_intakeSpin.setIntakeVoltage(-12), m_intake)
       .alongWith(new RunCommand(() -> m_delivery.setDeliveryVoltage(-12)))
       .alongWith(new RunCommand(() -> m_shooter.setFlyWheelVoltage(-12)))
@@ -317,13 +317,13 @@ public class RobotContainer {
     //     () -> m_climber.setVoltage(0), m_climber));
 
     //zero intake
-    m_driverController.y().onTrue(new InstantCommand(
+    m_manipulatorController.y().onTrue(new InstantCommand(
       () -> m_intake.setUp(), m_intake
       )
     );
     
     // spinny mc spinface
-    m_driverController.rightTrigger()
+    m_manipulatorController.rightTrigger()
       .onTrue(
         new RunCommand(
           () -> m_shooter.setFlyWheelVoltage(12), 
