@@ -186,7 +186,7 @@ public final class Constants {
     public static final int kIntakeIntakeCanId = 10; // Right intake
     public static final int kIntakeROTCanId = 9;
 
-    public static final double kIntakeROTkP = 2;
+    public static final double kIntakeROTkP = 1;
     public static final double kIntakeROTkI = 0.0;
     public static final double kIntakeROTkD = 0.0;
 

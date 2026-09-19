@@ -282,13 +282,20 @@ public class RobotContainer {
 
 
 
- m_manipulatorController.a().whileTrue(
-  new ConditionalCommand(
-    new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
-    new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
-    m_intake::isStowed  // returns true if stowed → deploy, false if deployed → stow
-  )
-);
+    m_manipulatorController.a().whileTrue(
+      new ConditionalCommand(
+        new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
+        new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
+        m_intake::isStowed  // returns true if stowed → deploy, false if deployed → stow
+      )
+    );
+
+    m_manipulatorController.y().whileTrue(
+      new RunCommand(
+        () -> m_intake.setRawPower(-0.5), 
+        m_intake
+      )
+    );
 
     //intake
     m_manipulatorController.leftTrigger().onTrue(new RunCommand(
@@ -316,11 +323,6 @@ public class RobotContainer {
     //   () -> m_climber.setVoltage(4), m_climber)).onFalse(new RunCommand(
     //     () -> m_climber.setVoltage(0), m_climber));
 
-    //zero intake
-    m_manipulatorController.y().onTrue(new InstantCommand(
-      () -> m_intake.setUp(), m_intake
-      )
-    );
     
     // spinny mc spinface
     m_manipulatorController.rightTrigger()
