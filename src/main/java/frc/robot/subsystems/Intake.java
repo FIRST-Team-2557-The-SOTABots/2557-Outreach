@@ -1,88 +1,68 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
 
-import frc.robot.Constants.IntakeConstants;
-
-import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.SparkBase.ControlType;
-import com.revrobotics.spark.SparkBase.PersistMode; 
-import com.revrobotics.spark.SparkBase.ResetMode;   
-import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
-import frc.robot.Constants;
+import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
-  /** Creates a new Intake. */
 
-  private SparkMax intakeROT;
-  private SparkAbsoluteEncoder intakeEncoder;
-  private SparkClosedLoopController intakePID;
+  private final SparkMax intakeROT;
+  private final SparkAbsoluteEncoder intakeEncoder;
 
-  // Use a local copy of the config so modifications do not affect other subsystems
-  private SparkMaxConfig intakeRotConfig = new SparkMaxConfig();
-  private double intakePositionTarget = Constants.IntakeConstants.IntakePosition.kStowed;
+  // Standard WPILib PIDController running on the roboRIO
+  private final PIDController intakePID = new PIDController(
+      IntakeConstants.kIntakeROTkP,
+      IntakeConstants.kIntakeROTkI,
+      IntakeConstants.kIntakeROTkD
+  );
 
-  // Tracks the shifted absolute encoder reading when fully UP against the hard stop
+  private double intakePositionTarget = IntakeConstants.IntakePosition.kStowed;
   private double intakeZeroOffset = 0.0;
+  private boolean isManualMode = false;
 
   public Intake() {
     intakeROT = new SparkMax(
-      Constants.IntakeConstants.kIntakeROTCanId, 
-      com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
-    
-    intakePID = intakeROT.getClosedLoopController();
+        IntakeConstants.kIntakeROTCanId,
+        com.revrobotics.spark.SparkLowLevel.MotorType.kBrushless);
+
     intakeEncoder = intakeROT.getAbsoluteEncoder();
 
-    // Copy the base configuration from your global Configs class
+    SparkMaxConfig intakeRotConfig = new SparkMaxConfig();
     intakeRotConfig.apply(Configs.IntakeConfigs.intakeROTConfig);
-
-    intakeRotConfig.closedLoop
-      .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-      .pid(IntakeConstants.kIntakeROTkP, IntakeConstants.kIntakeROTkI, IntakeConstants.kIntakeROTkD)
-      .outputRange(-1.0, 1.0);
-
-    // Safe current limit so the motor can safely stall into the stop without melting
     intakeRotConfig.smartCurrentLimit(40);
 
     intakeROT.configure(
-      intakeRotConfig,
-      ResetMode.kNoResetSafeParameters,
-      PersistMode.kPersistParameters);
+        intakeRotConfig,
+        ResetMode.kNoResetSafeParameters,
+        PersistMode.kPersistParameters);
 
-    // Establish the initial raw baseline position upon robot booting up
     intakeZeroOffset = intakeEncoder.getPosition();
   }
 
-  /**
-   * Gets the intake position adjusted for mid-match encoder slippage.
-   * If it slips, this will still correctly output 0.0 when fully up against the hard stop.
-   */
   public double getIntakePosition() {
-    return intakeEncoder.getPosition() - intakeZeroOffset; 
-  }
-
-  public void setIntakePosition(double targetPosition) {
-    this.intakePositionTarget = targetPosition;
+    return intakeEncoder.getPosition() - intakeZeroOffset;
   }
 
   public boolean isStowed() {
-    return intakePositionTarget == Constants.IntakeConstants.IntakePosition.kStowed;
+    return this.intakePositionTarget == IntakeConstants.IntakePosition.kStowed;
   }
 
-  /**
-   * Manually commands raw power override (bypassing PID) to drive into the hard stop during homing.
-   */
+  public void setIntakePosition(double targetPosition) {
+    this.isManualMode = false;
+    this.intakePositionTarget = targetPosition;
+  }
+
   public void setRawPower(double percentOutput) {
-    intakeROT.setVoltage(percentOutput * 12);
+    this.isManualMode = true;
+    intakeROT.set(percentOutput);
   }
 
   @Override
@@ -90,34 +70,30 @@ public class Intake extends SubsystemBase {
     double currentVelocity = intakeEncoder.getVelocity();
     double appliedOutput = intakeROT.getAppliedOutput();
 
-    // --- AUTOMATIC STALL / SLIP DETECTION ---
-    // If your code is commanding upward output and the velocity drops close to 0,
-    // the intake has hit its physical top stop.
+    // Automatic stall detection baseline calibration
     if (appliedOutput > 0.1 && Math.abs(currentVelocity) < 0.05) {
-      // Capture the broken, shifted raw encoder value as our new "Up/Stowed" baseline
       intakeZeroOffset = intakeEncoder.getPosition() - 0.01;
     }
 
-    // Adjust your hardware target using the software offset before giving it to the SPARK MAX
+    double currentPos = intakeEncoder.getPosition();
     double correctedHardwareTarget = intakePositionTarget + intakeZeroOffset;
 
-    // Arbitrary feed-forward to fight gravity
-    double arbFF = -0.05; 
+    if (!isManualMode) {
+      // Calculate output using WPILib PID on the RIO
+      double pidOutput = intakePID.calculate(currentPos, correctedHardwareTarget);
+      double arbFF = -0.05;
 
-    // Using the correct, modern setSetpoint method
-    intakePID.setSetpoint(
-        correctedHardwareTarget, 
-        ControlType.kPosition, 
-        com.revrobotics.spark.ClosedLoopSlot.kSlot0, 
-        arbFF
-    );
-    
-    // Dashboard telemetry
+      // Clamp total output between -1.0 and 1.0
+      double totalOutput = Math.max(-1.0, Math.min(1.0, pidOutput + arbFF));
+      intakeROT.set(totalOutput);
+    }
+
+    // Telemetry
     SmartDashboard.putNumber("Target Intake Pos", intakePositionTarget);
     SmartDashboard.putNumber("Corrected Hardware Target", correctedHardwareTarget);
     SmartDashboard.putNumber("Current Calibrated Position", getIntakePosition());
-    SmartDashboard.putNumber("Raw Absolute Position", intakeEncoder.getPosition());
+    SmartDashboard.putNumber("Raw Absolute Position", currentPos);
     SmartDashboard.putNumber("APPLIED OUTPUT", appliedOutput);
-    SmartDashboard.putNumber("Intake Velocity", currentVelocity);
+    SmartDashboard.putNumber("Is Manual Mode", isManualMode ? 1 : 0);
   }
 }

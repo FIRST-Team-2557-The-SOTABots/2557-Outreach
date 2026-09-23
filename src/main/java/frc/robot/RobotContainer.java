@@ -282,11 +282,11 @@ public class RobotContainer {
 
 
 
-    m_manipulatorController.a().whileTrue(
-      new ConditionalCommand(
-        new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
-        new RunCommand(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
-        m_intake::isStowed  // returns true if stowed → deploy, false if deployed → stow
+    m_manipulatorController.a().onTrue(
+      Commands.either(
+        Commands.runOnce(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kGround), m_intake),
+        Commands.runOnce(() -> m_intake.setIntakePosition(Constants.IntakeConstants.IntakePosition.kStowed), m_intake),
+        m_intake::isStowed
       )
     );
 
