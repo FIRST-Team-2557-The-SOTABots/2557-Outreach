@@ -27,7 +27,6 @@ public class Intake extends SubsystemBase {
   private double intakePositionTarget = IntakeConstants.IntakePosition.kStowed;
   private double intakeZeroOffset = 0.0;
   private boolean isManualMode = false;
-  private double totalOutput = 0.0;
 
   public Intake() {
     intakeROT = new SparkMax(
@@ -72,34 +71,29 @@ public class Intake extends SubsystemBase {
     double appliedOutput = intakeROT.getAppliedOutput();
 
     // Automatic stall detection baseline calibration
-    if (appliedOutput > 0.1 && Math.abs(currentVelocity) < 0.05) {
-      intakeZeroOffset = intakeEncoder.getPosition() - 0.01;
-    }
+    // if (appliedOutput > -0.1 && Math.abs(currentVelocity) < 0.05) {
+    //   intakeZeroOffset = intakeEncoder.getPosition() + 0.01;
+    // }
 
     double currentPos = intakeEncoder.getPosition();
-    double correctedHardwareTarget = intakePositionTarget + intakeZeroOffset;
+    // double correctedHardwareTarget = intakePositionTarget + intakeZeroOffset;
 
     if (!isManualMode) {
       // Calculate output using WPILib PID on the RIO
-      double pidOutput = intakePID.calculate(currentPos, correctedHardwareTarget);
+      double pidOutput = intakePID.calculate(currentPos, intakePositionTarget);
       double arbFF = -0.05;
 
       // Clamp total output between -1.0 and 1.0
-      totalOutput = Math.max(-1.0, Math.min(1.0, pidOutput + arbFF));
+      double totalOutput = Math.max(-1.0, Math.min(1.0, pidOutput + arbFF));
       intakeROT.set(totalOutput);
-    } else {
-    // Manual Mode: setRawPower() directly set intakeROT
-    SmartDashboard.putString("Intake Control Mode", "Manual Power Override");
-    SmartDashboard.putNumber("Target Intake Pos", 0.0); // Reset or mark inactive
-  }
+    }
 
     // Telemetry
     SmartDashboard.putNumber("Target Intake Pos", intakePositionTarget);
-    SmartDashboard.putNumber("Corrected Hardware Target", correctedHardwareTarget);
+    // SmartDashboard.putNumber("Corrected Hardware Target", correctedHardwareTarget);
     SmartDashboard.putNumber("Current Calibrated Position", getIntakePosition());
     SmartDashboard.putNumber("Raw Absolute Position", currentPos);
     SmartDashboard.putNumber("APPLIED OUTPUT", appliedOutput);
-    SmartDashboard.putNumber("Target Output", totalOutput);
     SmartDashboard.putNumber("Is Manual Mode", isManualMode ? 1 : 0);
   }
 }
