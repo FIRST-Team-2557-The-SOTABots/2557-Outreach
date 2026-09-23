@@ -47,10 +47,11 @@ public class Intake extends SubsystemBase {
 
     intakeRotConfig.closedLoop
       .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-      .pid(IntakeConstants.kIntakeROTkP, IntakeConstants.kIntakeROTkI, IntakeConstants.kIntakeROTkD);
+      .pid(IntakeConstants.kIntakeROTkP, IntakeConstants.kIntakeROTkI, IntakeConstants.kIntakeROTkD)
+      .outputRange(-1.0, 1.0);
 
     // Safe current limit so the motor can safely stall into the stop without melting
-    intakeRotConfig.smartCurrentLimit(25);
+    intakeRotConfig.smartCurrentLimit(40);
 
     intakeROT.configure(
       intakeRotConfig,
@@ -81,7 +82,7 @@ public class Intake extends SubsystemBase {
    * Manually commands raw power override (bypassing PID) to drive into the hard stop during homing.
    */
   public void setRawPower(double percentOutput) {
-    intakeROT.set(percentOutput);
+    intakeROT.setVoltage(percentOutput * 12);
   }
 
   @Override
