@@ -27,6 +27,7 @@ public class Intake extends SubsystemBase {
   private double intakePositionTarget = IntakeConstants.IntakePosition.kStowed;
   private double intakeZeroOffset = 0.0;
   private boolean isManualMode = false;
+  private double totalOutput = 0.0;
 
   public Intake() {
     intakeROT = new SparkMax(
@@ -84,9 +85,13 @@ public class Intake extends SubsystemBase {
       double arbFF = -0.05;
 
       // Clamp total output between -1.0 and 1.0
-      double totalOutput = Math.max(-1.0, Math.min(1.0, pidOutput + arbFF));
+      totalOutput = Math.max(-1.0, Math.min(1.0, pidOutput + arbFF));
       intakeROT.set(totalOutput);
-    }
+    } else {
+    // Manual Mode: setRawPower() directly set intakeROT
+    SmartDashboard.putString("Intake Control Mode", "Manual Power Override");
+    SmartDashboard.putNumber("Target Intake Pos", 0.0); // Reset or mark inactive
+  }
 
     // Telemetry
     SmartDashboard.putNumber("Target Intake Pos", intakePositionTarget);
@@ -94,6 +99,7 @@ public class Intake extends SubsystemBase {
     SmartDashboard.putNumber("Current Calibrated Position", getIntakePosition());
     SmartDashboard.putNumber("Raw Absolute Position", currentPos);
     SmartDashboard.putNumber("APPLIED OUTPUT", appliedOutput);
+    SmartDashboard.putNumber("Target Output", totalOutput);
     SmartDashboard.putNumber("Is Manual Mode", isManualMode ? 1 : 0);
   }
 }
