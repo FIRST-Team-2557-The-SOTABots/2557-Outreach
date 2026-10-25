@@ -73,19 +73,23 @@ public class DriveSubsystem extends SubsystemBase {
   
   LimelightHelpers.PoseEstimate limelightMeasurement;
 
-  SwerveDrivePoseEstimator m_poseEstimator = new SwerveDrivePoseEstimator(
-    DriveConstants.kDriveKinematics,
-    Rotation2d.fromDegrees(getHeading()),
-    new SwerveModulePosition[] {
-        m_frontLeft.getPosition(),
-        m_frontRight.getPosition(),
-        m_rearLeft.getPosition(),
-        m_rearRight.getPosition()
-    },
-    getPose());
+  SwerveDrivePoseEstimator m_poseEstimator;
 
+  String m_limelightName = "limelight-main";
 
   public DriveSubsystem() {
+
+    m_poseEstimator = new SwerveDrivePoseEstimator(
+      DriveConstants.kDriveKinematics,
+      Rotation2d.fromDegrees(getHeading()),
+      new SwerveModulePosition[] {
+          m_frontLeft.getPosition(),
+          m_frontRight.getPosition(),
+          m_rearLeft.getPosition(),
+          m_rearRight.getPosition()
+      },
+      getPose());
+
     // Usage reporting for MAXSwerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
@@ -116,6 +120,18 @@ public class DriveSubsystem extends SubsystemBase {
               // Boolean supplier that controls when the path will be mirrored for the red alliance
               // This will flip the path being followed to the red side of the field.
               // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+              m_poseEstimator = new SwerveDrivePoseEstimator(
+                DriveConstants.kDriveKinematics,
+                Rotation2d.fromDegrees(getHeading()),
+                new SwerveModulePosition[] {
+                    m_frontLeft.getPosition(),
+                    m_frontRight.getPosition(),
+                    m_rearLeft.getPosition(),
+                    m_rearRight.getPosition()
+                },
+                getPose());
+
 
               var alliance = DriverStation.getAlliance();
               if (alliance.isPresent()) {
@@ -156,29 +172,15 @@ public class DriveSubsystem extends SubsystemBase {
     Logger.recordOutput("DriveSubsystem/EstimatedPose", getPose());
     Logger.recordOutput("DriveSubsystem/GyroHeading", getTargetWithMovement(new Translation2d(5, 5)));
 
-    LimelightHelpers.PoseEstimate mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
-    LimelightHelpers.SetRobotOrientation("", getLimelightHeading(),
-        0, 0, 0, 0, 0);
-    boolean doRejectUpdate = false;
+    
+    if (LimelightHelpers.getTV(m_limelightName)){
+      LimelightHelpers.SetRobotOrientation(m_limelightName, m_gyro.getYaw(), 0,0,0,0,0);
 
-    if (mt2 == null || mt2.tagCount == 0) {
-      doRejectUpdate = true;
-      //System.out.println("mt2 is null"); // If mt2 is null, reject the vision update
-    } else {
-      if (Math.abs(m_gyro.getRate()) > 720) {
-        doRejectUpdate = true;
+      var visionEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(m_limelightName);
+
+      if (visionEstimate != null && visionEstimate.tagCount > 0){
+        m_poseEstimator.addVisionMeasurement(visionEstimate.pose, visionEstimate.timestampSeconds);
       }
-    }
-//(:3)comp code fr chat on gregor
-    if (!doRejectUpdate) {
-      // arrayPublisher.set(new Pose2d[] { getPose(), mt2.pose });
-      // Matrix<N3, N1> cprStdDevs = MEASUREMENT_STD_DEV_DISTANCE_MAP.get(mt2.avgTagDist);
-      // m_poseEstimator.setVisionMeasurementStdDevs(cprStdDevs);
-      m_poseEstimator.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
-      Logger.recordOutput("greg", mt2.pose);
-      // arrayPublisher.set(new Pose2d[] {m_poseEstimator.getEstimatedPosition(), mt2.pose});
-    } else {
-      
     }
     
 

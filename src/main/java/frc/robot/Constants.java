@@ -142,7 +142,7 @@ public final class Constants {
 
     public static final double kFlyWheelP = .004; 
     public static final double kFlyWheelI = 0;
-    public static final double kFlyWheelD = 0.0;
+    public static final double kFlyWheelD = 0.0001;
     public static final double kFlyWheelToleranceRPM = 50.0; 
 
     
@@ -177,6 +177,19 @@ public final class Constants {
       kFlywheelMap.put(4400.0, 8.0);
       kFlywheelMap.put(5505.0, 10.0);
       kFlywheelMap.put(6075.0, 12.0);
+    }
+
+    public static final InterpolatingDoubleTreeMap kDistRPMMap = new InterpolatingDoubleTreeMap();
+    static {
+      // Populate the flywheel RPM map with distance (in meters) to flywheel RPM pairs
+      kDistRPMMap.put(0.0,0.0);
+      kDistRPMMap.put(3200.0, 1.2);
+      kDistRPMMap.put(3300.0, 1.5);
+      kDistRPMMap.put(3800.0, 2.0);
+      kDistRPMMap.put(4100.0, 2.5);
+      kDistRPMMap.put(4600.0, 3.0);
+      kDistRPMMap.put(5800.0, 3.5);
+      kDistRPMMap.put(6200.0, 4.0);
     }
   }
 

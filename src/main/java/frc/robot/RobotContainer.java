@@ -51,6 +51,23 @@ public class RobotContainer {
   // The driver's controller
   CommandXboxController m_driverController = new CommandXboxController(OIConstants.kDriverControllerPort);
   CommandXboxController m_manipulatorController = new CommandXboxController(OIConstants.kManipulatorControllerPort);
+
+  private static final String LIMELIGHT_NAME = "limelight-main";
+
+  private final StructPublisher<Pose2d> limelightPosePublisher =
+      NetworkTableInstance.getDefault()
+          .getStructTopic("Limelight/RobotPose", Pose2d.struct)
+          .publish();
+
+
+  
+
+          
+  private final NetworkTableInstance nt =
+      NetworkTableInstance.getDefault();
+
+  private final edu.wpi.first.networktables.BooleanPublisher limelightHasTargetPublisher =
+      nt.getBooleanTopic("Limelight/HasTarget").publish();
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -83,10 +100,22 @@ public class RobotContainer {
         : stream
     );
 
-    StructPublisher<Pose2d> publisher = NetworkTableInstance.getDefault()
-      .getStructTopic("MyPose", Pose2d.struct).publish();
-    StructArrayPublisher<Pose2d> arrayPublisher = NetworkTableInstance.getDefault()
-    .getStructArrayTopic("MyPoseArray", Pose2d.struct).publish();
+    // Publish Limelight's robot pose to NetworkTables continuously.
+    Commands.run(() -> {
+        boolean hasTarget = LimelightHelpers.getTV(LIMELIGHT_NAME);
+
+        limelightHasTargetPublisher.set(hasTarget);
+
+        if (hasTarget) {
+            Pose2d pose =
+                LimelightHelpers.getBotPose2d_wpiBlue(LIMELIGHT_NAME);
+
+            limelightPosePublisher.set(pose);
+        }
+    }).ignoringDisable(true).schedule();
+
+
+    
 
 
     SmartDashboard.putData("Auto Chooser", autoChooser);
@@ -97,7 +126,7 @@ public class RobotContainer {
     
     //shoot
     NamedCommands.registerCommand("Shoot", new RunCommand(
-      () -> {m_shooter.shootAtTarget(FieldPoints.getHubPosition() , m_robotDrive);
+      () -> {m_shooter.shootAtTarget(FieldPoints.getHubPosition() , m_robotDrive,8);
          m_robotDrive.turnToFieldPoint(FieldPoints.getHubPosition(), m_driverController);}, m_shooter, m_robotDrive));
 
     //intake out
@@ -256,16 +285,14 @@ public class RobotContainer {
           )
       );
 
-//     //shoot at depot shuttle
-//     // m_driverController.rightBumper().whileTrue(new RunCommand(
-//     //   () -> m_shooter.shootAtTarget(FieldPoints.getDepotShuttle()), m_shooter)
-//     //   .alongWith(new RunCommand(
-//     //     () -> m_robotDrive.turnToFieldPoint(FieldPoints.getDepotShuttle(), m_driverController), m_robotDrive))
-//     //     .until(
-//     //       () -> m_shooter.isAtSetpoint() && m_robotDrive.isAtTurnTarget())
-//     //     .andThen(new RunCommand(
-//     //       () -> m_delivery.stutter(Constants.DeliveryConstants.kDeliveryVoltage), m_delivery))
-//     //       .alongWith(new RunCommand(() -> m_shooterDelivery.setDeliveryVoltage(Constants.ShooterConstants.kShooterDeliveryVoltage), m_shooterDelivery)));
+    // shoot at depot shuttle
+    m_driverController.rightTrigger(0.1).whileTrue(new RunCommand(
+      () -> m_shooter.shootAtTarget(FieldPoints.getDepotShuttle(), m_robotDrive, m_manipulatorController.getRightTriggerAxis()*12), m_shooter)
+      .alongWith(new RunCommand(
+        () -> m_robotDrive.turnToFieldPoint(FieldPoints.getDepotShuttle(), m_driverController), m_robotDrive))
+        .andThen(new RunCommand(
+          () -> m_delivery.setDeliveryVoltage(Constants.DeliveryConstants.kDeliveryVoltage), m_delivery))
+          .alongWith(new RunCommand(() -> m_shooterDelivery.setDeliveryVoltage(Constants.ShooterConstants.kShooterDeliveryVoltage), m_shooterDelivery)));
 
 //     // Reset heading
     m_driverController.start().onTrue(Commands.runOnce(
@@ -324,21 +351,53 @@ public class RobotContainer {
     //     () -> m_climber.setVoltage(0), m_climber));
 
     
-    // spinny mc spinface
-    m_manipulatorController.rightTrigger()
-      .onTrue(
-        new RunCommand(
-          () -> m_shooter.setFlyWheelVoltage(12), 
+    // -------------------------------------------------------------------------
+    // Manual Shooter Override: Right Trigger pulls variable voltage (up to 12V)
+    // -------------------------------------------------------------------------
+    // m_manipulatorController.rightTrigger(0.1) // 10% deadband
+    //   .whileTrue(
+    //     new RunCommand(
+    //       () -> {
+    //         // Scale right trigger input (0.0 to 1.0) to raw voltage (0.0 to 12.0)
+    //         double triggerValue = m_manipulatorController.getRightTriggerAxis();
+    //         m_shooter.setFlyWheelVoltage(triggerValue * 12.0);
+    //       }, 
+    //       m_shooter
+    //     )
+    //   )
+    //   .onFalse(
+    //     new InstantCommand(
+    //       () -> m_shooter.setFlyWheelVoltage(0.0), 
+    //       m_shooter
+    //     )
+    //   );
+
+    m_manipulatorController.povRight().onTrue(
+      new InstantCommand(
+          () -> m_shooter.setFlyWheelVoltage(0.0), 
           m_shooter
-        )
       )
-      .onFalse(
-        new RunCommand(
-          () -> m_shooter.setFlyWheelVoltage(0), 
+    );
+
+    m_manipulatorController.povLeft().onTrue(
+      new InstantCommand(
+          () -> m_shooter.setFlyWheelVoltage(0.0), 
           m_shooter
-        )
+      )
+    );
+
+    // -------------------------------------------------------------------------
+    // Automatic Target Selection: POV Up & Down steps through the map distance
+    // -------------------------------------------------------------------------
+    m_manipulatorController.povUp()
+      .onTrue(
+        new InstantCommand(() -> m_shooter.incrementUp(), m_shooter)
       );
-    
+
+    m_manipulatorController.povDown()
+      .onTrue(
+        new InstantCommand(() -> m_shooter.incrementDown(), m_shooter)
+      );
 
 
     
@@ -350,7 +409,40 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
+  
   public Command getAutonomousCommand() {
-    return autoChooser.getSelected();
+    // This creates a hardcoded step-by-step sequence using your actual subsystems
+    return Commands.sequence(
+
+    Commands.runOnce(() -> m_robotDrive.zeroHeading()),
+
+        // Step 2: Drive forward for 2.0 seconds at half speed
+        Commands.run(() -> m_robotDrive.drive(-0.4, 0.0, 0.0, true), m_robotDrive)
+            .withTimeout(0.75),
+
+        // Step 3: Stop driving and stop the intake
+        Commands.runOnce(() -> m_robotDrive.drive(0.0, 0.0, 0.0, true), m_robotDrive),
+
+        // Step 4: Rev up the shooter and aim at the hub for 3.0 seconds
+        Commands.run(() -> {
+          m_shooter.setFlyWheelVoltage(8);
+          // pass null or a dummy controller if needed, or omit if turnToFieldPoint can accept custom inputs
+        }, m_shooter, m_robotDrive).withTimeout(2.0),
+
+        // Step 5: Feed the ball into the shooter using your delivery subsystems for 1.5 seconds
+        Commands.run(() -> {
+          m_delivery.setDeliveryVoltage(-10);
+          m_shooterDelivery.setDeliveryVoltage(Constants.ShooterConstants.kShooterDeliveryVoltage);
+        }, m_delivery, m_shooterDelivery).withTimeout(1.5),
+
+        // Step 6: Turn everything off at the end of auto
+        Commands.runOnce(() -> {
+          m_shooter.setFlyWheelVoltage(0);
+          m_shooterDelivery.setDeliveryVoltage(0);
+          m_delivery.setDeliveryVoltage(0);
+        }, m_shooter, m_shooterDelivery, m_delivery)
+    );
   }
+
+  
 }

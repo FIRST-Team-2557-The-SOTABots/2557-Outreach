@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import frc.robot.Configs;
 import frc.robot.Constants;
+import frc.robot.Constants.ShooterConstants;
 
 import com.revrobotics.PersistMode;
 import com.revrobotics.RelativeEncoder;
@@ -17,7 +18,6 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -38,9 +38,6 @@ public class Shooter extends SubsystemBase {
   private SparkFlexConfig shooterFlyWheelRightConfig;
   private SparkFlexConfig shooterFlyWheelOtherConfig;
 
-  // Single shared WPILib PID controller for all three flywheels.
-  // Since all motors target the same RPM, one controller is sufficient.
-  // Tune kP, kI, kD in Constants.ShooterConstants.
   private PIDController shooterFlyWheelPIDController;
 
   private DriveSubsystem kDrive;
@@ -48,26 +45,26 @@ public class Shooter extends SubsystemBase {
   private double targetRPM;
   private double holdVoltage;
   private double voltage;
-  private InterpolatingDoubleTreeMap kFlywheelMap;
   private boolean forward = true;
+
+  private boolean manualShoot = true;
+  // Initialize autoTarget to a safe starting distance (e.g., 2.0 meters)
+  public double autoTarget = 2.0;
 
   /** Creates a new Shooter. */
   public Shooter(DriveSubsystem kDrive) {
     kConstants = new Constants();
     this.kDrive = kDrive;
 
-
     shooterFlyWheelLeft = new SparkFlex(
         Constants.ShooterConstants.kShooterFlyWheel1CanId,
         MotorType.kBrushless);
     shooterFlyWheelLeftRelativeEncoder = shooterFlyWheelLeft.getEncoder();
 
-
     shooterFlyWheelMiddle = new SparkFlex(
         Constants.ShooterConstants.kShooterFlyWheel2CanId,
         MotorType.kBrushless);
     shooterFlyWheelMiddleRelativeEncoder = shooterFlyWheelMiddle.getEncoder();
-
 
     shooterFlyWheelRight = new SparkFlex(
         Constants.ShooterConstants.kShooterFlyWheel3CanId,
@@ -109,61 +106,67 @@ public class Shooter extends SubsystemBase {
         Constants.ShooterConstants.kFlyWheelI,
         Constants.ShooterConstants.kFlyWheelD);
 
-
     shooterFlyWheelPIDController.setTolerance(Constants.ShooterConstants.kFlyWheelToleranceRPM);
-    
   }
 
-  // Set the voltage of the flywheel motors to control the speed of the flywheels
+  public void incrementUp() {
+    setAuto(); // Switch back to automatic mode when using POV
+    autoTarget += 0.3;
+    autoTarget = Math.min(autoTarget, 4.0); // Clamp to max map distance
+  }
+
+  public void incrementDown() {
+    setAuto(); // Switch back to automatic mode when using POV
+    autoTarget -= 0.3;
+    autoTarget = Math.max(autoTarget, 1.2); // Clamp to min map distance
+  }
+
+  // Set target RPM directly (Automatic/Vision Mode)
   public void setFlyWheelRPM(double targetRPM, boolean forward) {
     this.targetRPM = targetRPM;
     this.forward = forward;
+    setAuto();
   }
 
-  public double getHoldVoltage(){
-      return Constants.ShooterConstants.kFlywheelMap.get(3.0);
-  }
-
+  // Set raw voltage directly (Manual Mode triggered by Right Trigger)
   public void setFlyWheelVoltage(double voltage) {
-    shooterFlyWheelLeft.setVoltage(voltage);
-    shooterFlyWheelMiddle.setVoltage(voltage);
-    shooterFlyWheelRight.setVoltage(voltage);
-    shooterFlyWheelOther.setVoltage(voltage);
+    this.voltage = voltage;
+    setManual(); // Turns off PID and map hold
   }
 
-  public void shootAtTarget(Translation2d point, DriveSubsystem m_drive){
-    double distance = m_drive.getPose().getTranslation().getDistance(point);
-    double targetRPM = Constants.ShooterConstants.kFlywheelRPMMap.get(distance);
-    setFlyWheelRPM(targetRPM, true);
+  public double getHoldVoltage() {
+    return Constants.ShooterConstants.kFlywheelMap.get(3.0);
   }
 
+  public void shootAtTarget(Translation2d point, DriveSubsystem m_drive, double voltage) {
+    if(m_drive.getPose() != null){
+      double distance = m_drive.getPose().getTranslation().getDistance(point);
+      double targetRPM = Constants.ShooterConstants.kFlywheelRPMMap.get(distance);
+      setFlyWheelRPM(targetRPM, true);
+    }
+    else {
+      setFlyWheelVoltage(voltage);
+    }
+    
+  }  
 
- 
   public boolean isAtSetpoint() {
     return shooterFlyWheelPIDController.atSetpoint();
   }
-
-
-  // public void setFlyWheelVoltage(double voltage) {
-  //   shooterFlyWheelLeft.setVoltage(voltage);
-  //   shooterFlyWheelMiddle.setVoltage(voltage);
-  //   shooterFlyWheelRight.setVoltage(voltage);
-  // }
-
 
   public double getFlyWheelVelocity() {
     return (shooterFlyWheelLeftRelativeEncoder.getVelocity() +
             shooterFlyWheelMiddleRelativeEncoder.getVelocity() +
             shooterFlyWheelRightRelativeEncoder.getVelocity() +
-            shooterFlyWheelOtherRelativeEncoder.getVelocity()
-            ) / 4.0;
+            shooterFlyWheelOtherRelativeEncoder.getVelocity()) / 4.0;
   }
 
-  public void shootStationary(double x, double y) {
-    Translation2d diff =
-        new Translation2d(x, y).minus(kDrive.getPose().getTranslation());
+  public void setManual() {
+    manualShoot = true;
+  }
 
-    double distance = diff.getNorm();
+  public void setAuto() {
+    manualShoot = false;
   }
 
   @Override
@@ -171,41 +174,58 @@ public class Shooter extends SubsystemBase {
     SmartDashboard.putNumber("requested shooter RPM", targetRPM);
     SmartDashboard.putNumber("shooter RPM", getFlyWheelVelocity());
     SmartDashboard.putNumber("shooter voltage", voltage);
-    SmartDashboard.putNumber("Shooter PID Voltatge", voltage);
     SmartDashboard.putNumber("Shooter Hold Voltage", holdVoltage);
     SmartDashboard.putBoolean("forward", forward);
     SmartDashboard.putBoolean("shoot", isAtSetpoint());
-    if(targetRPM == 0){
+    SmartDashboard.putBoolean("MANUAL SHOOTING", manualShoot);
+    SmartDashboard.putNumber("AUTO TARGET (FEET)", autoTarget * 3.28084);
+    SmartDashboard.putNumber("SHOOT DISTANCE FEET", (ShooterConstants.kDistRPMMap.get(getFlyWheelVelocity()) * 3.28084));
+    SmartDashboard.putNumber("SHOOT DISTANCE METERS", (ShooterConstants.kDistRPMMap.get(getFlyWheelVelocity())));
 
-      shooterFlyWheelLeft.setVoltage(0);
-      shooterFlyWheelMiddle.setVoltage(0);
-      shooterFlyWheelRight.setVoltage(0);
-      shooterFlyWheelOther.setVoltage(0);
-      
-    } else if(forward = true) {
-      voltage = Math.max(-12.0, Math.min(
-        12.0, shooterFlyWheelPIDController.calculate(
-          getFlyWheelVelocity(), targetRPM)));
-
-      holdVoltage = Constants.ShooterConstants.kFlywheelMap.get(targetRPM);
-
-      shooterFlyWheelLeft.setVoltage(voltage + holdVoltage);
-      shooterFlyWheelMiddle.setVoltage(voltage + holdVoltage);
-      shooterFlyWheelRight.setVoltage((voltage + holdVoltage));
-      shooterFlyWheelOther.setVoltage(voltage + holdVoltage);
+    if (manualShoot) {
+      // -------------------------------------------------------------
+      // MANUAL MODE: Right trigger is held, apply raw voltage directly
+      // -------------------------------------------------------------
+      shooterFlyWheelLeft.setVoltage(voltage);
+      shooterFlyWheelMiddle.setVoltage(voltage);
+      shooterFlyWheelRight.setVoltage(voltage);
+      shooterFlyWheelOther.setVoltage(voltage);
     } else {
-      voltage = Math.max(-12.0, Math.min(
-        12.0, shooterFlyWheelPIDController.calculate(
-          getFlyWheelVelocity(), targetRPM)));
+      // -------------------------------------------------------------
+      // AUTOMATIC MODE: Look up target RPM from autoTarget distance map
+      // -------------------------------------------------------------
+      targetRPM = Constants.ShooterConstants.kFlywheelRPMMap.get(autoTarget);
 
-      holdVoltage = Constants.ShooterConstants.kFlywheelMap.get(targetRPM);
+      if (targetRPM == 0) {
+        shooterFlyWheelLeft.setVoltage(0);
+        shooterFlyWheelMiddle.setVoltage(0);
+        shooterFlyWheelRight.setVoltage(0);
+        shooterFlyWheelOther.setVoltage(0);
+      } else if (forward) {
+        voltage = Math.max(-12.0, Math.min(
+          12.0, shooterFlyWheelPIDController.calculate(
+            getFlyWheelVelocity(), targetRPM)));
 
-      shooterFlyWheelLeft.setVoltage((voltage + holdVoltage)  * -1);
-      shooterFlyWheelMiddle.setVoltage((voltage + holdVoltage)  * -1);
-      shooterFlyWheelRight.setVoltage((voltage + holdVoltage)  * -1);
-      shooterFlyWheelOther.setVoltage((voltage + holdVoltage)  * -1);
-      
+        holdVoltage = Constants.ShooterConstants.kFlywheelMap.get(targetRPM);
+
+        double totalVoltage = voltage + holdVoltage;
+        shooterFlyWheelLeft.setVoltage(totalVoltage);
+        shooterFlyWheelMiddle.setVoltage(totalVoltage);
+        shooterFlyWheelRight.setVoltage(totalVoltage);
+        shooterFlyWheelOther.setVoltage(totalVoltage);
+      } else {
+        voltage = Math.max(-12.0, Math.min(
+          12.0, shooterFlyWheelPIDController.calculate(
+            getFlyWheelVelocity(), targetRPM)));
+
+        holdVoltage = Constants.ShooterConstants.kFlywheelMap.get(targetRPM);
+
+        double totalVoltage = (voltage + holdVoltage) * -1;
+        shooterFlyWheelLeft.setVoltage(totalVoltage);
+        shooterFlyWheelMiddle.setVoltage(totalVoltage);
+        shooterFlyWheelRight.setVoltage(totalVoltage);
+        shooterFlyWheelOther.setVoltage(totalVoltage);
+      }
     }
-    // This method will be called once per scheduler run
   }
 }
